@@ -23,7 +23,7 @@ public class Client {
     
     public void connectToServer(){
         String clientInput;
-        String toServer = "";
+        String toServer;
         String fromServer;
         
         try(
@@ -39,16 +39,15 @@ public class Client {
                 //pedido al servidor
                 toServer = stdin.readLine();
                 
-                if(toServer.equals("exit")){
-                    System.out.println("Connection closed.");
-                    socket.close();
-                    break;
-                }
                 //sends message to server
                 out.println(toServer);
                 
                 //respuesta del servidor
                 fromServer = in.readLine();
+                if(socket.isClosed()){
+                    System.out.println("Connection closed.");
+                    break;
+                }
                 System.out.println(fromServer);
             }
         }catch(IOException ioe){

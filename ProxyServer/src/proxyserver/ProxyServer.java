@@ -52,7 +52,6 @@ public class ProxyServer extends Thread {
                             //
                             if(server.isClosed()){
                                 clientSocket.close();
-                                System.out.println("Client disconnected.");
                                 break;
                             }
                             else{
@@ -72,7 +71,6 @@ public class ProxyServer extends Thread {
                 String input, output;
                 try{
                     input = fromServer.readLine();
-                    this.fromServer = input;
                     //si la respuesta del servidor es el exit del cliente
                     //el proxyserver cierra la conexión con ese cliente
                     if(input.equals("exit")){

@@ -28,7 +28,7 @@ public class DbServerMain {
         hmap.put(5, "post5");
         //servidor
         ServerSocket server = new ServerSocket(portNumber);
-        System.out.println("Server running.");
+        System.out.println("DbServer running.");
         //bucle infinito donde se crean instancias de la clase Thread 
         //para cada cliente que se conecta
         //cada cliente tiene su propia entrada y salida (in, out).

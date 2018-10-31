@@ -23,29 +23,31 @@ public class DbServer extends Thread {
     }
     @Override
     public void run(){
-        String input = "";
-        String output = "";
+        String input, output;
         while(true){
             try{
                 //sends instruction to connected client
-                //this.out.println("Type exit to exit xd");
+                this.out.println("Type exit to exit xd");
                 input = this.in.readLine();
-                /*if(input.equals("exit")){
+                if(input.equals("exit")){
+                    this.out.println("exit");
+                    //cierra el socket cliente que está conectado al server
                     this.socket.close();
+                    System.out.println("Client disconnected.");
                     break;
-                }*/
+                }
                 this.out.println("received!: "+input);
             }catch(IOException ioe){
                 ioe.printStackTrace();
                 System.exit(1);
             }
         }
-        /*try{
+        try{
             this.in.close();
             this.out.close();
         }catch(IOException ioe){
             ioe.printStackTrace();
-        }*/
+        }
     } 
         
     public Boolean isNumber(String str){
@@ -57,6 +59,5 @@ public class DbServer extends Thread {
             return false;
         }
         return true;
-    }
-    
+    } 
 }
