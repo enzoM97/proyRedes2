@@ -11,7 +11,7 @@ import java.net.*;
  * @author enzo
  */
 public class ProxyServer extends Thread {
-    private Socket clientSocket;   //socket for client connection
+    private Socket clientSocket;   //socket for an especific client
     private String serverName;     //server name
     private int serverPort;        //server port
     private String fromClient;     //client input
@@ -41,23 +41,26 @@ public class ProxyServer extends Thread {
             BufferedReader fromServer = new BufferedReader(new InputStreamReader(server.getInputStream()));
         ){
             
-            System.out.println("Proxy Server running successfuly!");
-            //thread para enviar los pedidos de multiples clientes al server
+            System.out.println("A new client is connected.");
+            //thread para enviar multiples pedidos al server
             new Thread(){
                 @Override
                 public void run(){
                     String input, output;
                     while(true){
                         try{
-                            //lee la entrada del cliente
-                            input = fromClient.readLine();
-                            //si es igual a "exit" cierra la conexión
-                            if(input.equals("exit")){
+                            //
+                            if(server.isClosed()){
                                 clientSocket.close();
+                                System.out.println("Client disconnected.");
                                 break;
                             }
-                            //envia al servidor la entrada del cliente
-                            toServer.println(input);
+                            else{
+                                //lee la entrada del cliente
+                                input = fromClient.readLine();
+                                //envia al servidor la entrada del cliente
+                                toServer.println(input);
+                            }
                         }catch(IOException ioe){
                             ioe.printStackTrace();
                         }
@@ -69,6 +72,14 @@ public class ProxyServer extends Thread {
                 String input, output;
                 try{
                     input = fromServer.readLine();
+                    this.fromServer = input;
+                    //si la respuesta del servidor es el exit del cliente
+                    //el proxyserver cierra la conexión con ese cliente
+                    if(input.equals("exit")){
+                        server.close();
+                        System.out.println("Client disconnected.");
+                        break;
+                    }
                     output = input;
                     toClient.println(output);
                 }catch(IOException ioe){
