@@ -11,13 +11,16 @@ import java.net.*;
  * @author enzo
  */
 public class ProxyServer extends Thread {
-    private Socket clientSocket;   //socket for an especific client
-    private String serverName;     //server name
-    private int serverPort;        //server port
-    private String fromClient;     //client input
-    private String toClient;       //client output
-    private String fromServer;     //server output
-    private String toServer;       //server input
+    private Socket clientSocket;         //socket to connect a client to the db server
+    private Socket proxySocket;          //socket to connect the db server to a client
+    
+    private String serverName;           //server name
+    private int serverPort;              //server port
+    
+    private String clientInput;           //client input
+    private String clientOutput;             //client output
+    private String serverInput;           //server output
+    private String serverOutput;             //server input
     
     public ProxyServer(Socket clientSocket, String serverName, int serverPort){
         this.clientSocket = clientSocket;
@@ -25,84 +28,71 @@ public class ProxyServer extends Thread {
         this.serverPort = serverPort;
     }
     
-    @Override
-    public void run(){
-        //creates a socket to connect to the server
-        try(
-            //socket para conectarse al servidor como cliente
-            Socket server = new Socket(serverName, serverPort);
-            //output para cliente
-            PrintWriter toClient = new PrintWriter(clientSocket.getOutputStream(), true);
-            //input de cliente
-            BufferedReader fromClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            //output para el server
-            PrintWriter toServer = new PrintWriter(server.getOutputStream(), true);
-            //input del server
-            BufferedReader fromServer = new BufferedReader(new InputStreamReader(server.getInputStream()));
-        ){
-            
-            System.out.println("A new client is connected.");
-            //thread para enviar multiples pedidos al server
-            new Thread(){
-                @Override
-                public void run(){
-                    String input, output;
-                    while(true){
-                        try{
-                            //
-                            if(server.isClosed()){
-                                clientSocket.close();
-                                break;
-                            }
-                            else{
-                                //lee la entrada del cliente
-                                input = fromClient.readLine();
-                                //envia al servidor la entrada del cliente
-                                toServer.println(input);
-                            }
-                        }catch(IOException ioe){
-                            ioe.printStackTrace();
-                        }
-                    }
-                }
-            }.start();
-            //el servidor devuelve los pedidos al cliente
-            while(true){
+    //se encarga de enviar al servidor pedidos del cliente 
+    public void toServer(BufferedReader in, PrintWriter out){
+        System.out.println("A new client is connected.");
+        //thread para enviar multiples pedidos al server
+        new Thread(){
+            @Override
+            public void run(){
                 String input, output;
-                try{
-                    input = fromServer.readLine();
-                    //si la respuesta del servidor es el exit del cliente
-                    //el proxyserver cierra la conexión con ese cliente
-                    if(input.equals("exit")){
-                        server.close();
-                        System.out.println("Client disconnected.");
-                        break;
+                while(true){
+                    try{
+                        //lee la entrada del cliente
+                        input = in.readLine();
+                          
+                        if(input.equals("exit")){
+                            out.println(input);
+                            clientSocket.close();
+                            proxySocket.close();
+                            System.out.println("Client disconnected.");
+                            break;
+                        }
+                        //envia al servidor la entrada del cliente
+                        out.println(input);
+                    }catch(IOException ioe){
+                        ioe.printStackTrace();
                     }
-                    output = input;
-                    toClient.println(output);
-                }catch(IOException ioe){
-                    ioe.printStackTrace();
                 }
             }
-        }catch(IOException ioe){
-            ioe.printStackTrace();
-        }
-    }
-
-    public String getFromClient() {
-        return fromClient;
-    }
-
-    public String getToClient() {
-        return toClient;
-    }
-
-    public String getFromServer() {
-        return fromServer;
-    }
-
-    public String getToServer() {
-        return toServer;
+        }.start();    
     }
     
+    //se encarga de enviar al cliente la respuesta del servidor
+    public void fromServer(BufferedReader in, PrintWriter out){    
+        while(true){
+            String input, output;
+            try{
+                //si la respuesta del servidor es el exit del cliente
+                //el proxyserver cierra la conexión con ese cliente
+                if(proxySocket.isClosed()) break;
+                
+                input = in.readLine();
+                output = input;
+                out.println(output);
+                
+            }catch(IOException ioe){
+                ioe.printStackTrace();
+            }
+        }
+       
+    }
+    
+    @Override
+    public void run(){
+        try(
+            //socket que servira de conexión con el db server
+            Socket socket = new Socket(serverName, serverPort);
+            PrintWriter toClient = new PrintWriter(clientSocket.getOutputStream(), true);
+            BufferedReader fromClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            PrintWriter toServer = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader fromServer = new BufferedReader(new InputStreamReader(socket.getInputStream()));    
+        ){
+            proxySocket = socket;
+            toServer(fromClient, toServer);
+            fromServer(fromServer, toClient);
+        }catch(IOException ioe){
+            ioe.printStackTrace();
+        }  
+    }
 }

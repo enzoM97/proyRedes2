@@ -30,7 +30,6 @@ public class DbServer extends Thread {
                 this.out.println("Type exit to exit xd");
                 input = this.in.readLine();
                 if(input.equals("exit")){
-                    this.out.println("exit");
                     //cierra el socket cliente que está conectado al server
                     this.socket.close();
                     System.out.println("Client disconnected.");
@@ -41,12 +40,6 @@ public class DbServer extends Thread {
                 ioe.printStackTrace();
                 System.exit(1);
             }
-        }
-        try{
-            this.in.close();
-            this.out.close();
-        }catch(IOException ioe){
-            ioe.printStackTrace();
         }
     } 
         

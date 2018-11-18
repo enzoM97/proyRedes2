@@ -38,16 +38,17 @@ public class Client {
             while(true){
                 //pedido al servidor
                 toServer = stdin.readLine();
-                
+                if(toServer.equals("exit")){
+                    out.println(toServer);
+                    System.out.println("Connection closed.");
+                    break;
+                }
                 //sends message to server
                 out.println(toServer);
                 
                 //respuesta del servidor
                 fromServer = in.readLine();
-                if(socket.isClosed()){
-                    System.out.println("Connection closed.");
-                    break;
-                }
+               
                 System.out.println(fromServer);
             }
         }catch(IOException ioe){
