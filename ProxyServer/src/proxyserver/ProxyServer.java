@@ -11,16 +11,16 @@ import java.net.*;
  * @author enzo
  */
 public class ProxyServer extends Thread {
-    private Socket clientSocket;         //socket to connect a client to the proxyserver
-    private Socket proxySocket;          //socket to connect the db server to the proxyserver
+    private Socket clientSocket;         //socket to connect a client to the db server
+    private Socket proxySocket;          //socket to connect the db server to a client
     
     private String serverName;           //server name
     private int serverPort;              //server port
     
     private String clientInput;           //client input
-    private String clientOutput;          //client output
+    private String clientOutput;             //client output
     private String serverInput;           //server output
-    private String serverOutput;          //server input
+    private String serverOutput;             //server input
     
     public ProxyServer(Socket clientSocket, String serverName, int serverPort){
         this.clientSocket = clientSocket;
@@ -61,14 +61,15 @@ public class ProxyServer extends Thread {
         while(true){
             String input, output;
             try{
+                input = in.readLine();
                 //si la respuesta del servidor es el exit del cliente
                 //el proxyserver cierra la conexión con ese cliente
-                if(proxySocket.isClosed()){
+                if(input.equals("exit")){
+                    proxySocket.close();
                     clientSocket.close();
                     break;
                 }
                 
-                input = in.readLine();
                 output = input;
                 out.println(output);
                 
